@@ -354,7 +354,7 @@
     }
 
     .entry {
-      max-width: 86%;
+      max-width: 90%;
       padding: 14px 16px;
       font-size: 0.88rem;
       line-height: 1.5;
@@ -382,7 +382,41 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       opacity: 0.65;
+      margin-bottom: 8px;
+    }
+
+    /* FICHAS EJECUTIVAS DE CORREOS RESUMIDOS */
+    .mail-card {
+      margin-top: 12px;
+      border: 1px solid var(--line-strong);
+      background: var(--bg-canvas);
+      padding: 12px 14px;
+      border-radius: 2px;
+    }
+    .mail-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .mail-card-subj {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--ink);
       margin-bottom: 6px;
+      line-height: 1.35;
+    }
+    .mail-card-sum {
+      font-size: 0.82rem;
+      color: var(--ink-secondary);
+      line-height: 1.45;
     }
 
     /* MINUTA / BORRADOR DE CORREO EN CHAT */
@@ -503,6 +537,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
       border-bottom: 1px solid var(--line);
       padding-bottom: 10px;
       margin-bottom: 14px;
@@ -553,7 +589,7 @@
       font-weight: 700;
     }
 
-    .cal-markers { display: flex; gap: 4px; }
+    .cal-markers { display: flex; gap: 4px; flex-wrap: wrap; }
 
     .schedule-row {
       display: grid;
@@ -758,15 +794,15 @@
             <span>SECRETARIA IA // SISTEMA LISTO</span>
             <span>EN LÍNEA</span>
           </div>
-          Conectada con tu bandeja institucional y expedientes. Pídeme revisar el estado de un proyecto, redactar una solicitud o insistir por antecedentes pendientes.
+          Conectada con tu bandeja institucional, Google Drive y Calendar. Pídeme resumir los últimos correos de @minvu, redactar una solicitud o agendar reuniones con invitación.
         </div>
       </div>
 
       <!-- Comandos rápidos -->
       <div class="prompt-bar">
+        <button class="prompt-tag" onclick="usarPrompt('Resume los últimos correos de @minvu')">Resumir correos @minvu</button>
         <button class="prompt-tag" onclick="usarPrompt('¿Qué antecedentes faltan actualmente?')">Resumen de pendientes</button>
-        <button class="prompt-tag" onclick="usarPrompt('Revisa ahora mismo si llegaron correos nuevos')">Auditar bandeja ahora</button>
-        <button class="prompt-tag" onclick="usarPrompt('Agéndame visita a terreno el jueves a las 10:00')">Agendar visita a terreno</button>
+        <button class="prompt-tag" onclick="usarPrompt('Agéndame visita a terreno el próximo martes a las 10:00')">Agendar visita a terreno</button>
       </div>
 
       <!-- Barra de entrada -->
@@ -777,19 +813,23 @@
       </div>
     </div>
 
-    <!-- 4. MODO AGENDA -->
+    <!-- 4. MODO AGENDA CON NAVEGACIÓN ENTRE MESES -->
     <div id="view-agenda">
       <div class="section-block">
         <div class="section-head">
-          <h3 id="cal-month-title">01 / Cronograma Mensual</h3>
-          <button class="arch-btn" style="padding: 6px 10px; font-size: 0.7rem;" onclick="usarPrompt('Agéndame reunión técnica SERVIU el viernes a las 11:00'); alternarVista();">+ Nuevo Hito</button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="arch-btn" style="padding: 5px 9px;" onclick="cambiarMesCalendario(-1)" title="Mes anterior">←</button>
+            <h3 id="cal-month-title" style="min-width: 165px; text-align: center;">Cronograma</h3>
+            <button class="arch-btn" style="padding: 5px 9px;" onclick="cambiarMesCalendario(1)" title="Mes siguiente">→</button>
+          </div>
+          <button class="arch-btn" style="padding: 6px 10px; font-size: 0.7rem;" onclick="usarPrompt('Agéndame reunión técnica SERVIU el próximo viernes a las 11:00'); alternarVista();">+ Nuevo Hito</button>
         </div>
         <div class="cal-grid" id="cal-grid"></div>
       </div>
 
       <div class="section-block">
         <div class="section-head">
-          <h3>02 / Hitos y Vencimientos Activos</h3>
+          <h3>Hitos y Vencimientos del Período</h3>
           <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-muted);">CALENDAR + SHEETS</span>
         </div>
         <div id="agenda-list"></div>
@@ -903,29 +943,21 @@
     // =========================================================================
     const GAS_URL = "https://script.google.com/macros/s/AKfycby4J3_MV_pGyCAAvZd9p-2wLT5GQfuHoK0jJEeFix7TjAIFoeUieVwjP-jvppqTxBg7/exec";
 
-    let sessionPin = "2325";
+    let sessionPin = "";
     let vistaActual = "agent";
+    let fechaCalendarioVista = new Date();
+    let diaSeleccionadoFiltro = null;
+
     let estadoGlobal = {
-      critico: [
-        { id: "TR-01", proyecto: "Comité El Sol (DS27)", contacto: "Ing. Patricia Soto", email: "ecalculo@ingenieria.cl", doc: "Planos de estructura firmados", detalle: "Vence mañana · 2 insistencias enviadas", fecha: "2026-11-26" },
-        { id: "TR-02", proyecto: "Condominio Las Palmas", contacto: "SERVIU V Región", email: "revisor.v@minvu.cl", doc: "Respuesta oficio observaciones #412", detalle: "Vence en 36 hrs · Minuta lista", fecha: "2026-11-26" }
-      ],
-      esperando: [
-        { id: "TR-03", proyecto: "Villa Los Aromos", contacto: "Constructora del Sur", email: "cmunoz@constructora.cl", doc: "Certificado factibilidad eléctrica", detalle: "Enviado hace 1 día · Recordatorio mañana", fecha: "2026-11-28" }
-      ],
-      listo: [
-        { id: "TR-04", proyecto: "Villa Los Aromos", contacto: "Constructora del Sur", email: "cmunoz@constructora.cl", doc: "Presupuesto corregido firmado.pdf", detalle: "Archivado en Drive hoy · 08:25 hrs", fecha: "2026-11-25" }
-      ],
-      agenda: [
-        { fecha: "2026-11-26", tipo: "red", titulo: "Plazo Fatal Subsanación DS27 — Comité El Sol", desc: "Pendiente recepción de planos de estructura firmados." },
-        { fecha: "2026-11-27", tipo: "amber", titulo: "Insistencia Automática — Constructora Valparaíso", desc: "09:00 hrs · Recordatorio de presupuesto partidas sanitarias." },
-        { fecha: "2026-11-30", tipo: "green", titulo: "Mesa Técnica con Revisor SERVIU V Región", desc: "10:30 hrs · Revisión observaciones proyecto Condominio Las Palmas." }
-      ],
+      critico: [],
+      esperando: [],
+      listo: [],
+      agenda: [],
       config: { activo: true, frecuencia: "1", horario: "habil", espera: "2", max: "3", modelo: "ahorro" }
     };
 
     async function llamarBackend(accion, payload = {}) {
-      if (!GAS_URL) return null; // Modo Demo si no hay URL configurada
+      if (!GAS_URL) return null;
       try {
         const resp = await fetch(GAS_URL, {
           method: "POST",
@@ -1074,11 +1106,15 @@
       input.value = "";
 
       if (!GAS_URL) {
-        setTimeout(() => procesarRespuestaDemo(texto), 350);
+        agregarEntrada("Configura <strong>GAS_URL</strong> en el archivo index.html para conectar con tu cuenta Google.", "bot");
         return;
       }
 
+      const idCargando = agregarEntrada("Analizando bandeja y expedientes...", "bot");
       const res = await llamarBackend("chat", { mensaje: texto });
+      const burbujaTemp = document.getElementById(idCargando);
+      if (burbujaTemp) burbujaTemp.remove();
+
       if (res && res.ok) {
         renderizarRespuestaIA(res.respuesta);
         if (res.actualizarEstado) sincronizarTodo(false);
@@ -1138,38 +1174,15 @@
     function agregarEntrada(html, tipo) {
       const container = document.getElementById("chat-stream");
       const div = document.createElement("div");
+      const id = "msg_" + Date.now() + "_" + Math.floor(Math.random() * 100);
+      div.id = id;
       div.className = `entry ${tipo}`;
       const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const autor = tipo === "user" ? "ARQUITECTURA" : "SECRETARIA IA";
       div.innerHTML = `<div class="entry-meta"><span>${autor}</span><span>${hora}</span></div>${html}`;
       container.appendChild(div);
       container.scrollTop = container.scrollHeight;
-    }
-
-    function procesarRespuestaDemo(texto) {
-      const lower = texto.toLowerCase();
-      if (lower.includes("insist") || lower.includes("solicita") || lower.includes("correo") || lower.includes("revisa")) {
-        if (lower.includes("revisa")) {
-          agregarEntrada("Auditoría rápida ejecutada sobre remitentes registrados: sin nuevos adjuntos en los últimos 30 minutos.", "bot");
-          return;
-        }
-        renderizarRespuestaIA({
-          tipo_accion: "PREPARAR_CORREO",
-          respuesta_chat: "Minuta preparada para mantener trazabilidad en el expediente:",
-          datos_accion: {
-            destinatario: "ecalculo@ingenieria.cl",
-            asunto: "Solicitud / Seguimiento Antecedentes Técnicos",
-            cuerpo: "Estimado/a,\n\nJunto con saludar, solicito confirmar el envío de los antecedentes técnicos pendientes para cumplir con los plazos de ingreso ante SERVIU.\n\nSaludos cordiales.",
-            proyecto: "Comité El Sol (DS27)",
-            documento: "Planos de estructura",
-            fecha_limite: "2026-11-30"
-          }
-        });
-      } else if (lower.includes("agenda") || lower.includes("reunión") || lower.includes("visita")) {
-        agregarEntrada("Hito registrado en <strong>Google Calendar</strong> y visible en la vista <strong>Agenda</strong>.", "bot");
-      } else {
-        agregarEntrada("Actualmente hay <strong>2 plazos críticos</strong> próximos a vencer y <strong>1 expediente</strong> esperando respuesta de Constructora del Sur.", "bot");
-      }
+      return id;
     }
 
     function activarVoz() {
@@ -1231,13 +1244,28 @@
       usarPrompt(`Solicita a ${dest} los siguientes documentos: ${docs}, para el proyecto ${proy} con fecha límite ${fecha}`);
     }
 
+    // CALENDARIO MULTI-MES INTERACTIVO
+    function cambiarMesCalendario(delta) {
+      fechaCalendarioVista.setMonth(fechaCalendarioVista.getMonth() + delta);
+      diaSeleccionadoFiltro = null;
+      renderizarCalendario();
+      renderizarListaAgenda();
+    }
+
+    function seleccionarDiaCalendario(fechaStr) {
+      diaSeleccionadoFiltro = (diaSeleccionadoFiltro === fechaStr) ? null : fechaStr;
+      renderizarCalendario();
+      renderizarListaAgenda();
+    }
+
     function renderizarCalendario() {
       const grid = document.getElementById("cal-grid");
       const hoy = new Date();
-      const anio = hoy.getFullYear();
-      const mes = hoy.getMonth();
+      const anio = fechaCalendarioVista.getFullYear();
+      const mes = fechaCalendarioVista.getMonth();
       const nombresMes = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-      document.getElementById("cal-month-title").textContent = `01 / Cronograma · ${nombresMes[mes]} ${anio}`;
+
+      document.getElementById("cal-month-title").textContent = `${nombresMes[mes]} ${anio}`;
 
       const dias = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
       let html = dias.map(d => `<div class="cal-dow">${d}</div>`).join("");
@@ -1246,23 +1274,48 @@
       const offset = primerDia === 0 ? 6 : primerDia - 1;
       const totalDias = new Date(anio, mes + 1, 0).getDate();
 
-      for (let i = 0; i < offset; i++) html += `<div class="cal-day" style="background:var(--bg-canvas);"></div>`;
+      for (let i = 0; i < offset; i++) {
+        html += `<div class="cal-day" style="background:var(--bg-canvas); cursor:default;"></div>`;
+      }
 
       for (let d = 1; d <= totalDias; d++) {
         const fechaStr = `${anio}-${String(mes + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-        const esHoy = d === hoy.getDate() ? "today" : "";
+        const esHoy = (d === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear()) ? "today" : "";
+        const esSeleccionado = (diaSeleccionadoFiltro === fechaStr) ? "outline: 2px solid var(--ink); outline-offset: -2px; font-weight: 700;" : "";
+
         const eventosDia = (estadoGlobal.agenda || []).filter(e => e.fecha === fechaStr);
         const markers = eventosDia.map(e => `<span class="led sm ${e.tipo}"></span>`).join("");
 
-        html += `<div class="cal-day ${esHoy}"><span>${String(d).padStart(2, '0')}</span><div class="cal-markers">${markers}</div></div>`;
+        html += `<div class="cal-day ${esHoy}" style="${esSeleccionado}" onclick="seleccionarDiaCalendario('${fechaStr}')">
+          <span>${String(d).padStart(2, '0')}</span>
+          <div class="cal-markers">${markers}</div>
+        </div>`;
       }
       grid.innerHTML = html;
     }
 
     function renderizarListaAgenda() {
       const list = document.getElementById("agenda-list");
-      const items = estadoGlobal.agenda || [];
-      list.innerHTML = items.length ? items.map(ev => `
+      const anio = fechaCalendarioVista.getFullYear();
+      const mesStr = `${anio}-${String(fechaCalendarioVista.getMonth() + 1).padStart(2, "0")}`;
+
+      let items = estadoGlobal.agenda || [];
+      if (diaSeleccionadoFiltro) {
+        items = items.filter(ev => ev.fecha === diaSeleccionadoFiltro);
+      } else {
+        items = items.filter(ev => ev.fecha && ev.fecha.startsWith(mesStr));
+      }
+
+      items.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+      const cabeceraFiltro = diaSeleccionadoFiltro
+        ? `<div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:0.72rem;">
+             <span>FILTRANDO DÍA: ${diaSeleccionadoFiltro}</span>
+             <button class="arch-btn" style="padding:3px 8px; font-size:0.65rem;" onclick="seleccionarDiaCalendario('${diaSeleccionadoFiltro}')">Ver todo el mes</button>
+           </div>`
+        : '';
+
+      list.innerHTML = cabeceraFiltro + (items.length ? items.map(ev => `
         <div class="schedule-row">
           <div class="schedule-badge"><span class="led ${ev.tipo}"></span> ${ev.fecha}</div>
           <div>
@@ -1270,7 +1323,7 @@
             <p style="font-size: 0.78rem; color: var(--ink-secondary); margin-top: 2px;">${ev.desc}</p>
           </div>
         </div>
-      `).join("") : `<div style="font-size:0.82rem; color:var(--ink-muted);">Sin vencimientos próximos registrados.</div>`;
+      `).join("") : `<div style="font-size:0.82rem; color:var(--ink-muted); padding:8px 0;">Sin actividades ni vencimientos registrados para este período.</div>`);
     }
 
     function mostrarToast(msg) {
