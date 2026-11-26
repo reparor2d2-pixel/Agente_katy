@@ -1155,7 +1155,13 @@
       div.className = `entry ${tipo}`;
       const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const autor = tipo === "user" ? "KATHERINE" : "GABINETE IA";
-      div.innerHTML = `<div class="entry-meta"><span>${autor}</span><span>${hora}</span></div>${html}`;
+
+      // Convierte cualquier **texto** residual en <strong>texto</strong> y saltos de línea en <br>
+      const htmlFormateado = String(html)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+      div.innerHTML = `<div class="entry-meta"><span>${autor}</span><span>${hora}</span></div>${htmlFormateado}`;
       container.appendChild(div);
       container.scrollTop = container.scrollHeight;
       return id;
