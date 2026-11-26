@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>ATELIER · Secretaria Técnica & Gestión MINVU</title>
+  <style>
+    :root {
+      --bg-canvas: #FAFAFA;
+      --bg-surface: #FFFFFF;
+      --ink: #0A0A0A;
+      --ink-secondary: #525252;
+      --ink-muted: #8C8C8C;
+      --line: #E0E0E0;
+      --line-strong: #0A0A0A;
+
+      /* Indicadores de estado ampliados para móvil */
+      --ind-red: #DC2626;
+      --ind-amber: #D97706;
+      --ind-green: #16A34A;
+
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", "JetBrains Mono", Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-canvas);
+      color: var(--ink);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* BOTONES ARQUITECTÓNICOS TÁCTILES */
+    .arch-btn {
+      background: var(--bg-surface);
+      color: var(--ink);
+      border: 1px solid var(--line-strong);
+      border-radius: 2px;
+      padding: 10px 14px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 2px 2px 0px var(--ink);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+      user-select: none;
+    }
+
+    .arch-btn:hover { background: #F4F4F5; }
+    .arch-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px var(--ink);
+    }
+
+    .arch-btn.primary {
+      background: var(--ink);
+      color: var(--bg-surface);
+      box-shadow: 2px 2px 0px #737373;
+    }
+
+    .arch-btn.primary:hover { background: #262626; }
+    .arch-btn.primary:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #737373;
+    }
+
+    .arch-btn.active-tab {
+      background: var(--ink);
+      color: var(--bg-surface);
+      box-shadow: none;
+      transform: translate(1px, 1px);
+    }
+
+    /* INDICADORES DE ESTADO AMPLIADOS (13px) */
+    .led {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+      border: 1.5px solid rgba(10, 10, 10, 0.25);
+    }
+    .led.sm {
+      width: 9px;
+      height: 9px;
+    }
+    .led.red { background: var(--ind-red); }
+    .led.amber { background: var(--ind-amber); }
+    .led.green { background: var(--ind-green); }
+    .led.off { background: var(--ink-muted); }
+
+    /* PANTALLA DE ACCESO */
+    #pin-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-surface);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .pin-frame {
+      width: 100%;
+      max-width: 380px;
+      border: 1px solid var(--line-strong);
+      background: var(--bg-surface);
+      padding: 36px 28px;
+      box-shadow: 6px 6px 0px var(--ink);
+    }
+
+    .pin-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .pin-frame h1 {
+      font-size: 1.45rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .pin-frame p {
+      font-size: 0.84rem;
+      color: var(--ink-secondary);
+      margin-bottom: 28px;
+      line-height: 1.4;
+    }
+
+    .pin-input {
+      width: 100%;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      letter-spacing: 0.6rem;
+      text-align: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 2px;
+      background: var(--bg-canvas);
+      color: var(--ink);
+      margin-bottom: 18px;
+      outline: none;
+    }
+
+    /* HEADER SUPERIOR */
+    header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--line-strong);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+      background: var(--ink);
+      color: var(--bg-surface);
+    }
+
+    .brand-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .brand-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* CONTENEDOR PRINCIPAL */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    /* BARRA DE BOTONES DE ESTADO */
+    .control-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-canvas);
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      .control-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .stat-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--line-strong);
+      border-radius: 2px;
+      padding: 11px 12px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 2px 2px 0px var(--ink);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .stat-btn:hover { background: #F4F4F5; }
+    .stat-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px var(--ink);
+    }
+
+    .stat-btn-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .stat-num {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-secondary);
+    }
+
+    /* PANEL DESPLEGABLE DE EXPEDIENTES */
+    #quick-drawer {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--line-strong);
+      padding: 14px 16px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+
+    .dossier-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      background: var(--bg-canvas);
+    }
+
+    .dossier-row strong {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+    }
+
+    .dossier-row span {
+      font-size: 0.75rem;
+      color: var(--ink-secondary);
+    }
+
+    /* ÁREA CONVERSACIONAL */
+    #view-agent {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-stream {
+      flex: 1;
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .entry {
+      max-width: 86%;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      border: 1px solid var(--line-strong);
+      border-radius: 2px;
+    }
+
+    .entry.bot {
+      background: var(--bg-surface);
+      align-self: flex-start;
+      box-shadow: 3px 3px 0px var(--line);
+    }
+
+    .entry.user {
+      background: var(--ink);
+      color: var(--bg-surface);
+      align-self: flex-end;
+    }
+
+    .entry-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.65;
+      margin-bottom: 6px;
+    }
+
+    /* MINUTA / BORRADOR DE CORREO EN CHAT */
+    .minuta-box {
+      margin-top: 12px;
+      border: 1px solid var(--line-strong);
+      background: var(--bg-canvas);
+      padding: 12px;
+    }
+
+    .minuta-header {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--ink-secondary);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .minuta-editor {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--bg-surface);
+      padding: 10px;
+      font-size: 0.83rem;
+      line-height: 1.45;
+      color: var(--ink);
+      min-height: 92px;
+      resize: vertical;
+      outline: none;
+    }
+
+    .minuta-editor:focus { border-color: var(--ink); }
+
+    .minuta-footer {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    /* ACCIONES RÁPIDAS */
+    .prompt-bar {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      border-top: 1px solid var(--line);
+      background: var(--bg-canvas);
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    .prompt-bar::-webkit-scrollbar { display: none; }
+
+    .prompt-tag {
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      font-size: 0.74rem;
+      color: var(--ink-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      border-radius: 2px;
+      transition: all 0.15s;
+    }
+
+    .prompt-tag:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    /* BARRA INFERIOR DE ENTRADA */
+    .composer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--line-strong);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .composer input {
+      flex: 1;
+      border: 1px solid var(--line-strong);
+      background: var(--bg-canvas);
+      padding: 11px 14px;
+      font-size: 0.88rem;
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .composer input:focus { background: var(--bg-surface); }
+
+    .btn-mic.recording {
+      background: var(--ind-red);
+      color: white;
+      border-color: var(--ind-red);
+    }
+
+    /* VISTA MODO AGENDA */
+    #view-agenda {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px;
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-block {
+      border: 1px solid var(--line-strong);
+      background: var(--bg-surface);
+      padding: 16px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+
+    .section-head h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .cal-dow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 8px 0;
+      background: var(--bg-canvas);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cal-day {
+      aspect-ratio: 1.1;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .cal-day:hover { background: var(--bg-canvas); }
+    .cal-day.today {
+      background: var(--ink);
+      color: var(--bg-surface);
+      font-weight: 700;
+    }
+
+    .cal-markers { display: flex; gap: 4px; }
+
+    .schedule-row {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      align-items: baseline;
+    }
+
+    .schedule-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .schedule-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* MODALES */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.55);
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--line-strong);
+      box-shadow: 6px 6px 0px var(--ink);
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+      max-height: 90dvh;
+      overflow-y: auto;
+    }
+
+    .modal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line-strong);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+
+    .modal-top h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .field small {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--ink-secondary);
+      margin-bottom: 6px;
+    }
+    .field select, .field input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 2px;
+      background: var(--bg-canvas);
+      font-size: 0.85rem;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .toggle-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line-strong);
+      background: var(--bg-canvas);
+      margin-bottom: 18px;
+    }
+
+    /* NOTIFICACIÓN FLOTANTE */
+    #toast {
+      position: fixed;
+      bottom: 78px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--bg-surface);
+      border: 1px solid var(--line-strong);
+      padding: 10px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 90;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. ACCESO CON PIN -->
+  <div id="pin-screen">
+    <div class="pin-frame">
+      <span class="pin-kicker">SISTEMA DE GESTIÓN DOCUMENTAL // MINVU</span>
+      <h1>Secretaria Técnica</h1>
+      <p>Control autónomo de expedientes, planimetría y correspondencia con constructoras y SERVIU.</p>
+      <input type="password" id="pin-input" class="pin-input" maxlength="6" inputmode="numeric" placeholder="····" onkeydown="if(event.key==='Enter') verificarPin()" />
+      <button id="btn-login" class="arch-btn primary" style="width: 100%; padding: 13px;" onclick="verificarPin()">Acceder al Estudio</button>
+      <span id="pin-hint" class="pin-kicker" style="margin-top: 16px; margin-bottom: 0; text-align: center;">Sincronización automática en la nube</span>
+    </div>
+  </div>
+
+  <!-- 2. BARRA SUPERIOR -->
+  <header>
+    <div class="brand">
+      <div class="brand-mark">ST</div>
+      <div>
+        <div class="brand-title">Secretaria Técnica</div>
+        <div class="brand-status">
+          <span id="agent-dot" class="led green"></span>
+          <span id="agent-subtitle">ACTIVO · REVISIÓN CADA 1H</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-nav">
+      <button class="arch-btn" onclick="sincronizarTodo(true)" title="Actualizar datos">↻</button>
+      <button id="btn-toggle-view" class="arch-btn" onclick="alternarVista()">Agenda</button>
+      <button class="arch-btn" onclick="abrirModal('modal-settings')">Ajustes</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- 3. MODO MINIMALISTA (ENFOQUE AGENTE) -->
+    <div id="view-agent">
+      <div class="control-strip">
+        <button class="stat-btn" onclick="abrirCajon('critico')">
+          <div class="stat-btn-top">
+            <span id="count-critico" class="stat-num">00</span>
+            <span class="led red"></span>
+          </div>
+          <span class="stat-label">Plazos Críticos</span>
+        </button>
+
+        <button class="stat-btn" onclick="abrirCajon('esperando')">
+          <div class="stat-btn-top">
+            <span id="count-esperando" class="stat-num">00</span>
+            <span class="led amber"></span>
+          </div>
+          <span class="stat-label">En Seguimiento</span>
+        </button>
+
+        <button class="stat-btn" onclick="abrirCajon('listo')">
+          <div class="stat-btn-top">
+            <span id="count-listo" class="stat-num">00</span>
+            <span class="led green"></span>
+          </div>
+          <span class="stat-label">Recibidos Hoy</span>
+        </button>
+
+        <button class="stat-btn" style="background: var(--ink); color: var(--bg-surface);" onclick="abrirModal('modal-solicitud')">
+          <div class="stat-btn-top">
+            <span class="stat-num" style="color: var(--bg-surface);">+</span>
+            <span style="font-family: var(--font-mono); font-size: 0.7rem;">NUEVO</span>
+          </div>
+          <span class="stat-label" style="color: #D4D4D4;">Solicitar Correo</span>
+        </button>
+      </div>
+
+      <!-- Cajón desplegable de expedientes -->
+      <div id="quick-drawer">
+        <div class="drawer-head">
+          <span id="drawer-title">Expedientes</span>
+          <button class="arch-btn" style="padding: 4px 10px; font-size: 0.68rem;" onclick="cerrarCajon()">Cerrar</button>
+        </div>
+        <div id="drawer-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+
+      <!-- Bitácora / Chat con la secretaria -->
+      <div id="chat-stream" class="chat-stream">
+        <div class="entry bot">
+          <div class="entry-meta">
+            <span>SECRETARIA IA // SISTEMA LISTO</span>
+            <span>EN LÍNEA</span>
+          </div>
+          Conectada con tu bandeja institucional y expedientes. Pídeme revisar el estado de un proyecto, redactar una solicitud o insistir por antecedentes pendientes.
+        </div>
+      </div>
+
+      <!-- Comandos rápidos -->
+      <div class="prompt-bar">
+        <button class="prompt-tag" onclick="usarPrompt('¿Qué antecedentes faltan actualmente?')">Resumen de pendientes</button>
+        <button class="prompt-tag" onclick="usarPrompt('Revisa ahora mismo si llegaron correos nuevos')">Auditar bandeja ahora</button>
+        <button class="prompt-tag" onclick="usarPrompt('Agéndame visita a terreno el jueves a las 10:00')">Agendar visita a terreno</button>
+      </div>
+
+      <!-- Barra de entrada -->
+      <div class="composer">
+        <button id="btn-mic" class="arch-btn btn-mic" onclick="activarVoz()" title="Dictar instrucción">Voz</button>
+        <input type="text" id="chat-input" placeholder="Escriba o dicte una instrucción..." onkeydown="if(event.key==='Enter') enviarMensaje()" />
+        <button class="arch-btn primary" onclick="enviarMensaje()">Enviar</button>
+      </div>
+    </div>
+
+    <!-- 4. MODO AGENDA -->
+    <div id="view-agenda">
+      <div class="section-block">
+        <div class="section-head">
+          <h3 id="cal-month-title">01 / Cronograma Mensual</h3>
+          <button class="arch-btn" style="padding: 6px 10px; font-size: 0.7rem;" onclick="usarPrompt('Agéndame reunión técnica SERVIU el viernes a las 11:00'); alternarVista();">+ Nuevo Hito</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-head">
+          <h3>02 / Hitos y Vencimientos Activos</h3>
+          <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-muted);">CALENDAR + SHEETS</span>
+        </div>
+        <div id="agenda-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 5. MODAL DE AUTOMATIZACIÓN Y TRIGGERS -->
+  <div id="modal-settings" class="modal-overlay" onclick="if(event.target===this) cerrarModal('modal-settings')">
+    <div class="modal-box">
+      <div class="modal-top">
+        <h3>Configuración de Automatización</h3>
+        <button class="arch-btn" style="padding: 4px 10px; font-size: 0.7rem;" onclick="cerrarModal('modal-settings')">Cerrar</button>
+      </div>
+
+      <div class="toggle-box">
+        <div>
+          <strong style="font-size: 0.82rem; text-transform: uppercase; display: block;">Operación Autónoma</strong>
+          <span style="font-size: 0.75rem; color: var(--ink-secondary);">Monitoreo de correo y envíos programados</span>
+        </div>
+        <input type="checkbox" id="cfg-activo" checked style="width: 22px; height: 22px; accent-color: var(--ink); cursor: pointer;" />
+      </div>
+
+      <div class="field">
+        <label>Frecuencia de Revisión de Bandeja</label>
+        <small>Filtra exclusivamente correos de constructoras y dominios SERVIU/MINVU.</small>
+        <select id="cfg-frecuencia">
+          <option value="1" selected>Cada 1 hora (Recomendado)</option>
+          <option value="2">Cada 2 horas</option>
+          <option value="4">Cada 4 horas (2 a 3 veces al día)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Ventana Horaria de Envío</label>
+        <small>Fuera de este horario los recordatorios quedan en cola hasta el día hábil siguiente.</small>
+        <select id="cfg-horario">
+          <option value="habil" selected>Lunes a Viernes · 08:30 a 18:30 hrs</option>
+          <option value="sabado">Incluir Sábados · 09:00 a 13:00 hrs</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Tiempo de Espera Antes de Insistir</label>
+        <select id="cfg-espera">
+          <option value="1">1 día hábil (Prioridad alta)</option>
+          <option value="2" selected>2 días hábiles (Estándar)</option>
+          <option value="3">3 días hábiles</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Límite de Insistencias Automáticas</label>
+        <select id="cfg-max">
+          <option value="2">Máximo 2 recordatorios</option>
+          <option value="3" selected>Máximo 3 recordatorios antes de alertar</option>
+          <option value="4">Máximo 4 recordatorios</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Optimización de Motor IA</label>
+        <select id="cfg-modelo">
+          <option value="ahorro" selected>Modo Económico (Flash-Lite · Bajo consumo de cuota)</option>
+          <option value="precision">Modo Técnico Avanzado (Oficios complejos)</option>
+        </select>
+      </div>
+
+      <button id="btn-save-cfg" class="arch-btn primary" style="width: 100%; padding: 12px;" onclick="guardarAjustes()">Aplicar Configuración</button>
+    </div>
+  </div>
+
+  <!-- 6. MODAL NUEVA SOLICITUD -->
+  <div id="modal-solicitud" class="modal-overlay" onclick="if(event.target===this) cerrarModal('modal-solicitud')">
+    <div class="modal-box">
+      <div class="modal-top">
+        <h3>Nueva Solicitud de Antecedentes</h3>
+        <button class="arch-btn" style="padding: 4px 10px; font-size: 0.7rem;" onclick="cerrarModal('modal-solicitud')">Cerrar</button>
+      </div>
+
+      <div class="field">
+        <label>Expediente / Proyecto</label>
+        <input type="text" id="sol-proyecto" placeholder="Ej. Villa Los Aromos (DS27)" />
+      </div>
+
+      <div class="field">
+        <label>Correo Destinatario</label>
+        <input type="email" id="sol-destinatario" placeholder="Ej. ingeniero@constructora.cl" />
+      </div>
+
+      <div class="field">
+        <label>Antecedentes o Planimetría Requerida</label>
+        <input type="text" id="sol-docs" placeholder="Ej. Láminas de arquitectura firmadas y EETT" />
+      </div>
+
+      <div class="field">
+        <label>Fecha Límite de Recepción</label>
+        <input type="date" id="sol-fecha" />
+      </div>
+
+      <button class="arch-btn primary" style="width: 100%; padding: 12px;" onclick="generarBorradorDesdeModal()">Generar Minuta de Correo</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // =========================================================================
+    // CONFIGURACIÓN: PEGA AQUÍ LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT
+    // Si la dejas vacía (""), la interfaz funcionará en Modo Demo local.
+    // =========================================================================
+    const GAS_URL = "";
+
+    let sessionPin = "";
+    let vistaActual = "agent";
+    let estadoGlobal = {
+      critico: [
+        { id: "TR-01", proyecto: "Comité El Sol (DS27)", contacto: "Ing. Patricia Soto", email: "ecalculo@ingenieria.cl", doc: "Planos de estructura firmados", detalle: "Vence mañana · 2 insistencias enviadas", fecha: "2026-11-26" },
+        { id: "TR-02", proyecto: "Condominio Las Palmas", contacto: "SERVIU V Región", email: "revisor.v@minvu.cl", doc: "Respuesta oficio observaciones #412", detalle: "Vence en 36 hrs · Minuta lista", fecha: "2026-11-26" }
+      ],
+      esperando: [
+        { id: "TR-03", proyecto: "Villa Los Aromos", contacto: "Constructora del Sur", email: "cmunoz@constructora.cl", doc: "Certificado factibilidad eléctrica", detalle: "Enviado hace 1 día · Recordatorio mañana", fecha: "2026-11-28" }
+      ],
+      listo: [
+        { id: "TR-04", proyecto: "Villa Los Aromos", contacto: "Constructora del Sur", email: "cmunoz@constructora.cl", doc: "Presupuesto corregido firmado.pdf", detalle: "Archivado en Drive hoy · 08:25 hrs", fecha: "2026-11-25" }
+      ],
+      agenda: [
+        { fecha: "2026-11-26", tipo: "red", titulo: "Plazo Fatal Subsanación DS27 — Comité El Sol", desc: "Pendiente recepción de planos de estructura firmados." },
+        { fecha: "2026-11-27", tipo: "amber", titulo: "Insistencia Automática — Constructora Valparaíso", desc: "09:00 hrs · Recordatorio de presupuesto partidas sanitarias." },
+        { fecha: "2026-11-30", tipo: "green", titulo: "Mesa Técnica con Revisor SERVIU V Región", desc: "10:30 hrs · Revisión observaciones proyecto Condominio Las Palmas." }
+      ],
+      config: { activo: true, frecuencia: "1", horario: "habil", espera: "2", max: "3", modelo: "ahorro" }
+    };
+
+    async function llamarBackend(accion, payload = {}) {
+      if (!GAS_URL) return null; // Modo Demo si no hay URL configurada
+      try {
+        const resp = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ pin: sessionPin, accion, ...payload })
+        });
+        return await resp.json();
+      } catch (err) {
+        mostrarToast("Error de conexión con servidor Google");
+        return null;
+      }
+    }
+
+    async function verificarPin() {
+      const pin = document.getElementById("pin-input").value.trim();
+      if (pin.length < 4) {
+        mostrarToast("Ingrese clave de 4 a 6 dígitos");
+        return;
+      }
+      sessionPin = pin;
+
+      if (!GAS_URL) {
+        document.getElementById("pin-screen").style.display = "none";
+        actualizarInterfaz();
+        return;
+      }
+
+      const btn = document.getElementById("btn-login");
+      btn.textContent = "Verificando...";
+      const res = await llamarBackend("estado_inicial");
+      btn.textContent = "Acceder al Estudio";
+
+      if (res && res.ok) {
+        estadoGlobal = res.data;
+        document.getElementById("pin-screen").style.display = "none";
+        actualizarInterfaz();
+      } else {
+        mostrarToast(res?.error || "Clave incorrecta");
+      }
+    }
+
+    async function sincronizarTodo(notificar = false) {
+      if (!GAS_URL) {
+        actualizarInterfaz();
+        if (notificar) mostrarToast("Vista previa actualizada");
+        return;
+      }
+      if (notificar) mostrarToast("Sincronizando con Google...");
+      const res = await llamarBackend("estado_inicial");
+      if (res && res.ok) {
+        estadoGlobal = res.data;
+        actualizarInterfaz();
+        if (notificar) mostrarToast("Datos sincronizados");
+      }
+    }
+
+    function actualizarInterfaz() {
+      document.getElementById("count-critico").textContent = String(estadoGlobal.critico.length).padStart(2, "0");
+      document.getElementById("count-esperando").textContent = String(estadoGlobal.esperando.length).padStart(2, "0");
+      document.getElementById("count-listo").textContent = String(estadoGlobal.listo.length).padStart(2, "0");
+
+      const cfg = estadoGlobal.config || {};
+      const dot = document.getElementById("agent-dot");
+      const sub = document.getElementById("agent-subtitle");
+      if (cfg.activo !== false) {
+        dot.className = "led green";
+        sub.textContent = `ACTIVO · REVISIÓN CADA ${cfg.frecuencia || 1}H`;
+      } else {
+        dot.className = "led off";
+        sub.textContent = "PAUSADO MANUALMENTE";
+      }
+
+      if (document.getElementById("cfg-activo")) {
+        document.getElementById("cfg-activo").checked = cfg.activo !== false;
+        document.getElementById("cfg-frecuencia").value = cfg.frecuencia || "1";
+        document.getElementById("cfg-horario").value = cfg.horario || "habil";
+        document.getElementById("cfg-espera").value = cfg.espera || "2";
+        document.getElementById("cfg-max").value = cfg.max || "3";
+        document.getElementById("cfg-modelo").value = cfg.modelo || "ahorro";
+      }
+
+      renderizarCalendario();
+      renderizarListaAgenda();
+    }
+
+    function alternarVista() {
+      const vAgent = document.getElementById("view-agent");
+      const vAgenda = document.getElementById("view-agenda");
+      const btn = document.getElementById("btn-toggle-view");
+
+      if (vistaActual === "agent") {
+        vAgent.style.display = "none";
+        vAgenda.style.display = "flex";
+        btn.textContent = "Agente";
+        btn.classList.add("active-tab");
+        vistaActual = "agenda";
+      } else {
+        vAgenda.style.display = "none";
+        vAgent.style.display = "flex";
+        btn.textContent = "Agenda";
+        btn.classList.remove("active-tab");
+        vistaActual = "agent";
+      }
+    }
+
+    function abrirCajon(tipo) {
+      const drawer = document.getElementById("quick-drawer");
+      const list = document.getElementById("drawer-list");
+      const title = document.getElementById("drawer-title");
+      const titulos = {
+        critico: "01 // Expedientes con Plazo Crítico",
+        esperando: "02 // Solicitudes en Seguimiento Activo",
+        listo: "03 // Documentación Recibida Hoy"
+      };
+
+      title.textContent = titulos[tipo];
+      const items = estadoGlobal[tipo] || [];
+      list.innerHTML = items.length ? items.map(item => `
+        <div class="dossier-row">
+          <div>
+            <strong>${item.proyecto} — ${item.doc}</strong>
+            <span>${item.contacto} (${item.email || ""}) · ${item.detalle}</span>
+          </div>
+          ${tipo !== "listo" ? `<button class="arch-btn" style="padding: 6px 10px; font-size: 0.68rem;" onclick="usarPrompt('Insiste ahora a ${item.email || item.contacto} por ${item.doc} del proyecto ${item.proyecto}'); cerrarCajon();">Insistir</button>` : ""}
+        </div>
+      `).join("") : `<div style="font-size:0.8rem; color:var(--ink-muted); padding:8px;">Sin registros en esta categoría.</div>`;
+
+      drawer.style.display = "flex";
+    }
+
+    function cerrarCajon() {
+      document.getElementById("quick-drawer").style.display = "none";
+    }
+
+    function usarPrompt(texto) {
+      document.getElementById("chat-input").value = texto;
+      enviarMensaje();
+    }
+
+    async function enviarMensaje() {
+      const input = document.getElementById("chat-input");
+      const texto = input.value.trim();
+      if (!texto) return;
+
+      agregarEntrada(texto, "user");
+      input.value = "";
+
+      if (!GAS_URL) {
+        setTimeout(() => procesarRespuestaDemo(texto), 350);
+        return;
+      }
+
+      const res = await llamarBackend("chat", { mensaje: texto });
+      if (res && res.ok) {
+        renderizarRespuestaIA(res.respuesta);
+        if (res.actualizarEstado) sincronizarTodo(false);
+      } else {
+        agregarEntrada("No pude procesar la solicitud en este momento. Intenta nuevamente.", "bot");
+      }
+    }
+
+    function renderizarRespuestaIA(data) {
+      if (data.tipo_accion === "PREPARAR_CORREO" && data.datos_accion) {
+        const d = data.datos_accion;
+        const idCard = "draft_" + Date.now();
+        agregarEntrada(`
+          ${data.respuesta_chat}
+          <div class="minuta-box" id="${idCard}" data-dest="${d.destinatario}" data-asunto="${d.asunto}" data-proy="${d.proyecto || ''}" data-doc="${d.documento || ''}" data-fecha="${d.fecha_limite || ''}">
+            <div class="minuta-header">
+              <strong>PARA:</strong> ${d.destinatario}<br>
+              <strong>ASUNTO:</strong> ${d.asunto}
+            </div>
+            <textarea class="minuta-editor">${d.cuerpo}</textarea>
+            <div class="minuta-footer">
+              <button class="arch-btn primary" style="flex: 1;" onclick="confirmarEnvio('${idCard}')">Autorizar y Enviar</button>
+              <button class="arch-btn" onclick="document.getElementById('${idCard}').remove()">Descartar</button>
+            </div>
+          </div>
+        `, "bot");
+      } else {
+        agregarEntrada(data.respuesta_chat || "Orden ejecutada.", "bot");
+      }
+    }
+
+    async function confirmarEnvio(idCard) {
+      const card = document.getElementById(idCard);
+      const cuerpo = card.querySelector("textarea").value;
+      const payload = {
+        destinatario: card.dataset.dest,
+        asunto: card.dataset.asunto,
+        cuerpo: cuerpo,
+        proyecto: card.dataset.proy,
+        documento: card.dataset.doc,
+        fecha_limite: card.dataset.fecha
+      };
+
+      if (GAS_URL) {
+        const res = await llamarBackend("enviar_correo", payload);
+        if (!res || !res.ok) {
+          mostrarToast("Error al enviar correo");
+          return;
+        }
+        sincronizarTodo(false);
+      }
+
+      card.innerHTML = `<div style="display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:0.75rem; font-weight:700;"><span class="led sm green"></span> DESPACHADO Y REGISTRADO EN SEGUIMIENTO</div>`;
+      mostrarToast("Correo enviado correctamente");
+    }
+
+    function agregarEntrada(html, tipo) {
+      const container = document.getElementById("chat-stream");
+      const div = document.createElement("div");
+      div.className = `entry ${tipo}`;
+      const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const autor = tipo === "user" ? "ARQUITECTURA" : "SECRETARIA IA";
+      div.innerHTML = `<div class="entry-meta"><span>${autor}</span><span>${hora}</span></div>${html}`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function procesarRespuestaDemo(texto) {
+      const lower = texto.toLowerCase();
+      if (lower.includes("insist") || lower.includes("solicita") || lower.includes("correo") || lower.includes("revisa")) {
+        if (lower.includes("revisa")) {
+          agregarEntrada("Auditoría rápida ejecutada sobre remitentes registrados: sin nuevos adjuntos en los últimos 30 minutos.", "bot");
+          return;
+        }
+        renderizarRespuestaIA({
+          tipo_accion: "PREPARAR_CORREO",
+          respuesta_chat: "Minuta preparada para mantener trazabilidad en el expediente:",
+          datos_accion: {
+            destinatario: "ecalculo@ingenieria.cl",
+            asunto: "Solicitud / Seguimiento Antecedentes Técnicos",
+            cuerpo: "Estimado/a,\n\nJunto con saludar, solicito confirmar el envío de los antecedentes técnicos pendientes para cumplir con los plazos de ingreso ante SERVIU.\n\nSaludos cordiales.",
+            proyecto: "Comité El Sol (DS27)",
+            documento: "Planos de estructura",
+            fecha_limite: "2026-11-30"
+          }
+        });
+      } else if (lower.includes("agenda") || lower.includes("reunión") || lower.includes("visita")) {
+        agregarEntrada("Hito registrado en <strong>Google Calendar</strong> y visible en la vista <strong>Agenda</strong>.", "bot");
+      } else {
+        agregarEntrada("Actualmente hay <strong>2 plazos críticos</strong> próximos a vencer y <strong>1 expediente</strong> esperando respuesta de Constructora del Sur.", "bot");
+      }
+    }
+
+    function activarVoz() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        mostrarToast("Dictado por voz no disponible en este navegador");
+        return;
+      }
+      const btn = document.getElementById("btn-mic");
+      const recognition = new SpeechRecognition();
+      recognition.lang = "es-CL";
+      recognition.start();
+      btn.classList.add("recording");
+
+      recognition.onresult = (event) => {
+        document.getElementById("chat-input").value = event.results[0][0].transcript;
+        btn.classList.remove("recording");
+        enviarMensaje();
+      };
+      recognition.onerror = () => btn.classList.remove("recording");
+      recognition.onend = () => btn.classList.remove("recording");
+    }
+
+    function abrirModal(id) { document.getElementById(id).style.display = "flex"; }
+    function cerrarModal(id) { document.getElementById(id).style.display = "none"; }
+
+    async function guardarAjustes() {
+      const config = {
+        activo: document.getElementById("cfg-activo").checked,
+        frecuencia: document.getElementById("cfg-frecuencia").value,
+        horario: document.getElementById("cfg-horario").value,
+        espera: document.getElementById("cfg-espera").value,
+        max: document.getElementById("cfg-max").value,
+        modelo: document.getElementById("cfg-modelo").value
+      };
+
+      estadoGlobal.config = config;
+      actualizarInterfaz();
+      cerrarModal("modal-settings");
+
+      if (GAS_URL) {
+        const res = await llamarBackend("guardar_config", { config });
+        if (res && res.ok) mostrarToast("Triggers y reglas guardadas en Google");
+      } else {
+        mostrarToast("Preferencias actualizadas");
+      }
+    }
+
+    function generarBorradorDesdeModal() {
+      const proy = document.getElementById("sol-proyecto").value.trim() || "Proyecto Vivienda";
+      const dest = document.getElementById("sol-destinatario").value.trim();
+      const docs = document.getElementById("sol-docs").value.trim() || "antecedentes técnicos pendientes";
+      const fecha = document.getElementById("sol-fecha").value;
+      if (!dest) {
+        mostrarToast("Ingrese un correo destinatario");
+        return;
+      }
+      cerrarModal("modal-solicitud");
+      usarPrompt(`Solicita a ${dest} los siguientes documentos: ${docs}, para el proyecto ${proy} con fecha límite ${fecha}`);
+    }
+
+    function renderizarCalendario() {
+      const grid = document.getElementById("cal-grid");
+      const hoy = new Date();
+      const anio = hoy.getFullYear();
+      const mes = hoy.getMonth();
+      const nombresMes = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+      document.getElementById("cal-month-title").textContent = `01 / Cronograma · ${nombresMes[mes]} ${anio}`;
+
+      const dias = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
+      let html = dias.map(d => `<div class="cal-dow">${d}</div>`).join("");
+
+      const primerDia = new Date(anio, mes, 1).getDay();
+      const offset = primerDia === 0 ? 6 : primerDia - 1;
+      const totalDias = new Date(anio, mes + 1, 0).getDate();
+
+      for (let i = 0; i < offset; i++) html += `<div class="cal-day" style="background:var(--bg-canvas);"></div>`;
+
+      for (let d = 1; d <= totalDias; d++) {
+        const fechaStr = `${anio}-${String(mes + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const esHoy = d === hoy.getDate() ? "today" : "";
+        const eventosDia = (estadoGlobal.agenda || []).filter(e => e.fecha === fechaStr);
+        const markers = eventosDia.map(e => `<span class="led sm ${e.tipo}"></span>`).join("");
+
+        html += `<div class="cal-day ${esHoy}"><span>${String(d).padStart(2, '0')}</span><div class="cal-markers">${markers}</div></div>`;
+      }
+      grid.innerHTML = html;
+    }
+
+    function renderizarListaAgenda() {
+      const list = document.getElementById("agenda-list");
+      const items = estadoGlobal.agenda || [];
+      list.innerHTML = items.length ? items.map(ev => `
+        <div class="schedule-row">
+          <div class="schedule-badge"><span class="led ${ev.tipo}"></span> ${ev.fecha}</div>
+          <div>
+            <strong style="font-size: 0.85rem;">${ev.titulo}</strong>
+            <p style="font-size: 0.78rem; color: var(--ink-secondary); margin-top: 2px;">${ev.desc}</p>
+          </div>
+        </div>
+      `).join("") : `<div style="font-size:0.82rem; color:var(--ink-muted);">Sin vencimientos próximos registrados.</div>`;
+    }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.opacity = "1";
+      setTimeout(() => { t.style.opacity = "0"; }, 2600);
+    }
+  </script>
+</body>
+</html>
